@@ -1,0 +1,105 @@
+// machine generated, do not edit
+#pragma once
+
+#include <common.h>
+#include <exports.h>
+
+#include <stdexcept>
+#include <utility>
+
+// Are we compiling with exceptions enabled?
+#ifndef BULLET_ENABLE_EXCEPTIONS
+#  ifdef __cpp_exceptions
+#    define BULLET_ENABLE_EXCEPTIONS 1
+#  else
+#    define BULLET_ENABLE_EXCEPTIONS 0
+#  endif
+#endif
+
+namespace mrbindc_details
+{
+    #if BULLET_ENABLE_EXCEPTIONS
+    #define MRBINDC_THROW(message_, .../*result_cpp_type_*/) throw std::runtime_error(+(message_))
+    #else
+    [[noreturn]] BULLET_API void ThrowWithExceptionsDisabled(const char *message);
+    #define MRBINDC_THROW(message_, .../*result_cpp_type_*/) (mrbindc_details::ThrowWithExceptionsDisabled(message_), ((__VA_ARGS__ (*)())0)())
+    #endif
+
+    // Those are used to handle by-value arguments of class types, which are passed as a pointer plus a enum explaining how to handle it.
+    // The `cpp_type_without_wrapper_` vs `cpp_type_` are different for optionals: `cpp_type_` is either `T` or `std::optional<T>`, while `cpp_type_without_wrapper_` is always the `T` itself.
+    #define MRBINDC_CLASSARG_DEF_CTOR(param_, .../*cpp_type_*/) param_##_pass_by == Bullet_PassBy_DefaultConstruct ? (param_ ? MRBINDC_THROW("Expected a null pointer to be passed to `" #param_ " because `Bullet_PassBy_DefaultConstruct` was used.", __VA_ARGS__) : __VA_ARGS__{}) :
+    #define MRBINDC_CLASSARG_COPY(param_, cpp_type_without_wrapper_, .../*cpp_type_*/) param_##_pass_by == Bullet_PassBy_Copy ? __VA_ARGS__(*(MRBINDC_IDENTITY cpp_type_without_wrapper_ *)param_) :
+    #define MRBINDC_CLASSARG_MOVE(param_, cpp_type_without_wrapper_, .../*cpp_type_*/) param_##_pass_by == Bullet_PassBy_Move ? __VA_ARGS__(std::move(*(MRBINDC_IDENTITY cpp_type_without_wrapper_ *)param_)) :
+    #define MRBINDC_CLASSARG_DEF_ARG(param_, enum_constant_, default_arg_, .../*cpp_type_*/) param_##_pass_by == enum_constant_ ? (param_ ? MRBINDC_THROW("Expected a null pointer to be passed to `" #param_ " because `" #enum_constant_ "` was used.", __VA_ARGS__) : __VA_ARGS__(default_arg_)) :
+    #define MRBINDC_CLASSARG_NO_DEF_ARG(param_, enum_constant_, .../*cpp_type_*/) param_##_pass_by == enum_constant_ ? MRBINDC_THROW("Function parameter `" #param_ " doesn't support `" #enum_constant_ "`.", __VA_ARGS__) :
+    #define MRBINDC_CLASSARG_END(param_, .../*cpp_type_*/) true ? MRBINDC_THROW("Invalid `Bullet_PassBy` enum value specified for function parameter `" #param_ ".", __VA_ARGS__) : ((__VA_ARGS__ (*)())0)() // We need the dumb fallback to keep the overall type equal to `cpptype_` instead of `void`, which messes things up.
+
+    // This is used by the `MRBINDC_CLASSARG_GUARD()` macro, see below.
+    template <typename T>
+    struct ClassArgGuard
+    {
+        T *ptr = nullptr;
+        ClassArgGuard(T *new_ptr, Bullet_PassBy &pass_by)
+        {
+            if (pass_by != Bullet_PassBy_MoveAndDestroy)
+                return;
+            ptr = new_ptr;
+            pass_by = Bullet_PassBy_Move;
+        }
+        ClassArgGuard(const ClassArgGuard &) = delete;
+        ClassArgGuard &operator=(const ClassArgGuard &) = delete;
+        ~ClassArgGuard()
+        {
+            if (ptr)
+                delete ptr;
+        }
+    };
+
+    // This is used to handle `Bullet_PassBy_MoveAndDestroy`.
+    #define MRBINDC_CLASSARG_GUARD(param_, .../*cpp_type_without_wrapper_*/) mrbindc_details::ClassArgGuard<__VA_ARGS__> _classarg_guard_##param_((__VA_ARGS__ *)param_, param_##_pass_by)
+
+    // Converts an rvalue to an lvalue.
+    template <typename T> constexpr T &unmove(T &&value) {return static_cast<T &>(value);}
+} // namespace mrbindc_details
+
+
+#define MRBINDC_IDENTITY(...) __VA_ARGS__
+
+#if defined(_MSC_VER) && !defined(__clang__)
+#define MRBINDC_IGNORE_DEPRECATION(...) _Pragma("warning(push)") _Pragma("warning(disable: 4996)") __VA_ARGS__ _Pragma("warning(pop)")
+#else
+#define MRBINDC_IGNORE_DEPRECATION(...) _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"") __VA_ARGS__ _Pragma("GCC diagnostic pop")
+#endif
+
+
+// Define `MRBINDC_BIT_CAST()`. We have several implementations to choose from.
+// [
+
+// std::bit_cast
+#ifndef MRBINDC_BIT_CAST
+#if __has_include(<version>)
+#include <version>
+#ifdef __cpp_lib_bit_cast
+#include <bit>
+#define MRBINDC_BIT_CAST(p_type_, ...) std::bit_cast<MRBINDC_IDENTITY p_type_>(__VA_ARGS__)
+#endif
+#endif
+#endif
+
+// __builtin_bit_cast
+#ifndef MRBINDC_BIT_CAST
+#ifdef __has_builtin
+#if __has_builtin(__builtin_bit_cast)
+#define MRBINDC_BIT_CAST(p_type_, ...) __builtin_bit_cast(MRBINDC_IDENTITY p_type_, __VA_ARGS__) // How this handles commas in the first argument is a mystery, but it does.
+#endif
+#endif
+#endif
+
+// reinterpret_cast
+#ifndef MRBINDC_BIT_CAST
+#include <type_traits>
+#define MRBINDC_BIT_CAST(p_type_, ...) (MRBINDC_IDENTITY p_type_ (reinterpret_cast<std::add_lvalue_reference_t<std::add_const_t<MRBINDC_IDENTITY p_type_>>>(mrbindc_details::unmove(__VA_ARGS__))))
+#endif
+
+// ]
+
