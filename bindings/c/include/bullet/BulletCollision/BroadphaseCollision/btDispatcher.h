@@ -19,6 +19,8 @@ typedef struct btCollisionObject btCollisionObject; // Defined in `#include <bul
 /// Derived classes:
 ///   Direct: (non-virtual)
 ///     `btCollisionDispatcher`
+///   Indirect: (non-virtual)
+///     `btCollisionDispatcherMt`
 typedef struct btDispatcher btDispatcher;
 
 /// Destroys a heap-allocated instance of `btDispatcher`. Does nothing if the pointer is null.

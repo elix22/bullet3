@@ -18,6 +18,9 @@ typedef struct btConstraintSolver btConstraintSolver; // Defined in `#include <b
 /// Base classes:
 ///   Direct: (non-virtual)
 ///     `btConstraintSolver`
+/// Derived classes:
+///   Direct: (non-virtual)
+///     `btSequentialImpulseConstraintSolverMt`
 /// Supported `Bullet_PassBy` modes: `Bullet_PassBy_DefaultConstruct`, `Bullet_PassBy_Copy` (and `Bullet_PassBy_DefaultArgument` and `Bullet_PassBy_NoObject` if supported by the callee).
 typedef struct btSequentialImpulseConstraintSolver btSequentialImpulseConstraintSolver;
 

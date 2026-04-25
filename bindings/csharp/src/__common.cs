@@ -135,9 +135,21 @@ public static partial class Bullet
     }
 
 
+    public struct ArrayBool4
+    {
+        public unsafe fixed byte _elem[4];
+        public unsafe ref byte this[nint i] => ref _elem[i];
+    }
+
     public struct ArrayDouble4
     {
         public unsafe fixed double _elem[4];
         public unsafe ref double this[nint i] => ref _elem[i];
+    }
+
+    public struct ArrayInt2
+    {
+        public unsafe fixed int _elem[2];
+        public unsafe ref int this[nint i] => ref _elem[i];
     }
 }

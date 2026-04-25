@@ -29,6 +29,9 @@ typedef enum btCollisionDispatcher_DispatcherFlags
 /// Base classes:
 ///   Direct: (non-virtual)
 ///     `btDispatcher`
+/// Derived classes:
+///   Direct: (non-virtual)
+///     `btCollisionDispatcherMt`
 /// Supported `Bullet_PassBy` modes: `Bullet_PassBy_Copy` (and `Bullet_PassBy_DefaultArgument` and `Bullet_PassBy_NoObject` if supported by the callee).
 typedef struct btCollisionDispatcher btCollisionDispatcher;
 

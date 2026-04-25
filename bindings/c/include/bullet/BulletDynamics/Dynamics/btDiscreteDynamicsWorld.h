@@ -37,6 +37,9 @@ typedef struct btVector3 btVector3; // Defined in `#include <bullet/LinearMath/b
 ///     `btDynamicsWorld`
 ///   Indirect: (non-virtual)
 ///     `btCollisionWorld`
+/// Derived classes:
+///   Direct: (non-virtual)
+///     `btDiscreteDynamicsWorldMt`
 /// Supported `Bullet_PassBy` modes: `Bullet_PassBy_Copy` (and `Bullet_PassBy_DefaultArgument` and `Bullet_PassBy_NoObject` if supported by the callee).
 typedef struct btDiscreteDynamicsWorld btDiscreteDynamicsWorld;
 

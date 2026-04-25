@@ -83,6 +83,7 @@ typedef struct btCollisionWorld_ContactResultCallback btCollisionWorld_ContactRe
 ///     `btDynamicsWorld`
 ///   Indirect: (non-virtual)
 ///     `btDiscreteDynamicsWorld`
+///     `btDiscreteDynamicsWorldMt`
 /// Supported `Bullet_PassBy` modes: `Bullet_PassBy_Copy` (and `Bullet_PassBy_DefaultArgument` and `Bullet_PassBy_NoObject` if supported by the callee).
 typedef struct btCollisionWorld btCollisionWorld;
 

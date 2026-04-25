@@ -7,6 +7,9 @@ public static partial class Bullet
     /// Base classes:
     ///   Direct: (non-virtual)
     ///     `btDispatcher`
+    /// Derived classes:
+    ///   Direct: (non-virtual)
+    ///     `btCollisionDispatcherMt`
     /// This is the const half of the class.
     public class Const_BtCollisionDispatcher : Bullet.Object<Const_BtCollisionDispatcher>, System.IDisposable
     {
@@ -147,6 +150,9 @@ public static partial class Bullet
     /// Base classes:
     ///   Direct: (non-virtual)
     ///     `btDispatcher`
+    /// Derived classes:
+    ///   Direct: (non-virtual)
+    ///     `btCollisionDispatcherMt`
     /// This is the non-const half of the class.
     public class BtCollisionDispatcher : Const_BtCollisionDispatcher
     {

@@ -13,7 +13,10 @@ extern "C" {
 /// Generated from class `btConstraintSolver`.
 /// Derived classes:
 ///   Direct: (non-virtual)
+///     `btConstraintSolverPoolMt`
 ///     `btSequentialImpulseConstraintSolver`
+///   Indirect: (non-virtual)
+///     `btSequentialImpulseConstraintSolverMt`
 typedef struct btConstraintSolver btConstraintSolver;
 
 /// Destroys a heap-allocated instance of `btConstraintSolver`. Does nothing if the pointer is null.

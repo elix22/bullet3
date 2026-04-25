@@ -33,6 +33,8 @@ typedef struct btVector3 btVector3; // Defined in `#include <bullet/LinearMath/b
 /// Derived classes:
 ///   Direct: (non-virtual)
 ///     `btDiscreteDynamicsWorld`
+///   Indirect: (non-virtual)
+///     `btDiscreteDynamicsWorldMt`
 typedef struct btDynamicsWorld btDynamicsWorld;
 
 /// Destroys a heap-allocated instance of `btDynamicsWorld`. Does nothing if the pointer is null.

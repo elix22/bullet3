@@ -9,6 +9,9 @@ public static partial class Bullet
     ///     `btDynamicsWorld`
     ///   Indirect: (non-virtual)
     ///     `btCollisionWorld`
+    /// Derived classes:
+    ///   Direct: (non-virtual)
+    ///     `btDiscreteDynamicsWorldMt`
     /// This is the const half of the class.
     public class Const_BtDiscreteDynamicsWorld : Bullet.Object<Const_BtDiscreteDynamicsWorld>, System.IDisposable
     {
@@ -394,6 +397,9 @@ public static partial class Bullet
     ///     `btDynamicsWorld`
     ///   Indirect: (non-virtual)
     ///     `btCollisionWorld`
+    /// Derived classes:
+    ///   Direct: (non-virtual)
+    ///     `btDiscreteDynamicsWorldMt`
     /// This is the non-const half of the class.
     public class BtDiscreteDynamicsWorld : Const_BtDiscreteDynamicsWorld
     {

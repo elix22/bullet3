@@ -4,7 +4,10 @@ public static partial class Bullet
     /// Generated from class `btConstraintSolver`.
     /// Derived classes:
     ///   Direct: (non-virtual)
+    ///     `btConstraintSolverPoolMt`
     ///     `btSequentialImpulseConstraintSolver`
+    ///   Indirect: (non-virtual)
+    ///     `btSequentialImpulseConstraintSolverMt`
     /// This is the const half of the class.
     public class Const_BtConstraintSolver : Bullet.Object<Const_BtConstraintSolver>, System.IDisposable
     {
@@ -34,7 +37,10 @@ public static partial class Bullet
     /// Generated from class `btConstraintSolver`.
     /// Derived classes:
     ///   Direct: (non-virtual)
+    ///     `btConstraintSolverPoolMt`
     ///     `btSequentialImpulseConstraintSolver`
+    ///   Indirect: (non-virtual)
+    ///     `btSequentialImpulseConstraintSolverMt`
     /// This is the non-const half of the class.
     public class BtConstraintSolver : Const_BtConstraintSolver
     {

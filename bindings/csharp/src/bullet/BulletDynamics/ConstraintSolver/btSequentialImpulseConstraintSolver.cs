@@ -6,6 +6,9 @@ public static partial class Bullet
     /// Base classes:
     ///   Direct: (non-virtual)
     ///     `btConstraintSolver`
+    /// Derived classes:
+    ///   Direct: (non-virtual)
+    ///     `btSequentialImpulseConstraintSolverMt`
     /// This is the const half of the class.
     public class Const_BtSequentialImpulseConstraintSolver : Bullet.Object<Const_BtSequentialImpulseConstraintSolver>, System.IDisposable
     {
@@ -218,6 +221,9 @@ public static partial class Bullet
     /// Base classes:
     ///   Direct: (non-virtual)
     ///     `btConstraintSolver`
+    /// Derived classes:
+    ///   Direct: (non-virtual)
+    ///     `btSequentialImpulseConstraintSolverMt`
     /// This is the non-const half of the class.
     public class BtSequentialImpulseConstraintSolver : Const_BtSequentialImpulseConstraintSolver
     {

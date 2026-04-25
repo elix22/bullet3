@@ -27,6 +27,10 @@ export CLANG_CXX="$(xargs <"$CXX_FILE")"
 BINDINGS="deps/bullet/bindings"
 mkdir -p "$BINDINGS/c/include" "$BINDINGS/c/src" "$BINDINGS/csharp/src" "$BINDINGS/tmp"
 
+# clean.sh removes bindings/c/ entirely; restore the CMakeLists.txt that the
+# build scripts rely on (it is the authoritative copy — edit here, not there).
+cp "$BINDINGS/CMakeLists.txt" "$BINDINGS/c/CMakeLists.txt"
+
 BULLET_SRC="$(pwd)/deps/bullet/src"
 
 # Clang-style flags for the parser.
@@ -34,6 +38,7 @@ EXTRA_PARSER_CXX_FLAGS=(
     -std=c++17 -Wall -Wextra
     -fparse-all-comments
     -DBT_USE_DOUBLE_PRECISION
+    -DBT_THREADSAFE=1
     -I"$BULLET_SRC"
 )
 
@@ -83,6 +88,11 @@ set -x
 # Assemble the combined input header.
 echo "#pragma once" >"$BINDINGS/tmp/combined_input.h"
 echo "#include <btBulletDynamicsCommon.h>" >>"$BINDINGS/tmp/combined_input.h"
+# Multithreaded variants (require BT_THREADSAFE=1).
+echo "#include <BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h>" >>"$BINDINGS/tmp/combined_input.h"
+echo "#include <BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.h>" >>"$BINDINGS/tmp/combined_input.h"
+echo "#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorldMt.h>" >>"$BINDINGS/tmp/combined_input.h"
+echo "#include <LinearMath/btThreads.h>" >>"$BINDINGS/tmp/combined_input.h"
 
 # Parse the input header.
 ./build/mrbind \
@@ -102,7 +112,6 @@ echo "#include <btBulletDynamicsCommon.h>" >>"$BINDINGS/tmp/combined_input.h"
     --skip-mentions-of btDispatcherInfo \
     --skip-mentions-of btDispatcherQueryType \
     --skip-mentions-of btSimulationIslandManager \
-    --skip-mentions-of btConstraintSolverPoolMt \
     --skip-mentions-of btSolverAnalyticsData \
     --skip-mentions-of btSolverBody \
     --skip-mentions-of btSingleConstraintRowSolver \
@@ -118,6 +127,9 @@ echo "#include <btBulletDynamicsCommon.h>" >>"$BINDINGS/tmp/combined_input.h"
     --skip-mentions-of btNodeStack \
     --skip-mentions-of btSSEUnion \
     --skip-mentions-of btSpinMutex \
+    --skip-mentions-of btIParallelForBody \
+    --skip-mentions-of btSimulationIslandManagerMt \
+    --skip-mentions-of btContactManifoldCachedInfo \
     --skip-mentions-of btClock \
     --skip-mentions-of btQuantizedBvh \
     --skip-mentions-of btVertexArray \
@@ -170,6 +182,14 @@ echo "#include <btBulletDynamicsCommon.h>" >>"$BINDINGS/tmp/combined_input.h"
     --allow btOverlappingPairCache \
     --allow btConstraintSolver \
     --allow btSequentialImpulseConstraintSolver \
+    --allow btCollisionDispatcherMt \
+    --allow btSequentialImpulseConstraintSolverMt \
+    --allow btConstraintSolverPoolMt \
+    --allow btDiscreteDynamicsWorldMt \
+    --allow btITaskScheduler \
+    --allow btCreateDefaultTaskScheduler \
+    --allow btSetTaskScheduler \
+    --allow btGetTaskScheduler \
     "${EXTRA_PARSER_FLAGS[@]+"${EXTRA_PARSER_FLAGS[@]}"}" \
     -- \
     -xc++-header \
@@ -189,6 +209,12 @@ echo "#include <btBulletDynamicsCommon.h>" >>"$BINDINGS/tmp/combined_input.h"
     --assume-include-dir "$BULLET_SRC" \
     --force-emit-common-helpers \
     "${EXTRA_GEN_C_FLAGS[@]}"
+
+# Fix ODR: btContactManifoldCachedInfo::MAX_NUM_CONTACT_POINTS is 'static const int'
+# with an in-class initialiser but no out-of-class definition in Bullet's own sources.
+# The generated binding odr-uses it via std::addressof, which requires a definition.
+printf '\nconst int btSequentialImpulseConstraintSolverMt::btContactManifoldCachedInfo::MAX_NUM_CONTACT_POINTS;\n' \
+    >> "$BINDINGS/c/src/bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp"
 
 # Generate the C# bindings.
 ./build/mrbind_gen_csharp \
