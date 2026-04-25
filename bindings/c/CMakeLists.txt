@@ -37,7 +37,11 @@ set_target_properties(cbullet PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-if(NOT WIN32)
+if(MSVC)
+    target_compile_options(cbullet PRIVATE
+        /Zc:ternary-   # MSVC tries to instantiate deleted copy ctors during ternary type resolution; this disables that
+    )
+else()
     target_compile_options(cbullet PRIVATE
         -fvisibility=hidden
         -fvisibility-inlines-hidden
