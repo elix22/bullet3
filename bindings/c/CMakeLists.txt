@@ -38,9 +38,11 @@ set_target_properties(cbullet PROPERTIES
 )
 
 if(MSVC)
-    target_compile_options(cbullet PRIVATE
-        /Zc:ternary-   # MSVC tries to instantiate deleted copy ctors during ternary type resolution; this disables that
-    )
+    # /EHsc (the CMake default) assumes extern "C" functions are noexcept (/EHc).
+    # In that noexcept context MSVC tries to verify copy-constructibility of ternary
+    # result types, triggering C2280 on non-copyable Bullet classes.
+    # Replace /EHsc with /EHs to drop that assumption while keeping C++ exception support.
+    string(REPLACE "/EHsc" "/EHs" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
     target_compile_options(cbullet PRIVATE
         -fvisibility=hidden
