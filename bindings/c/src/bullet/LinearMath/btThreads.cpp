@@ -8,6 +8,10 @@
 #include <cstddef>
 #include <stdexcept>
 
+extern "C" void _mrbind_tramp_btSetTaskScheduler(btITaskScheduler * ts);
+extern "C" btITaskScheduler * _mrbind_tramp_btGetTaskScheduler();
+extern "C" btITaskScheduler * _mrbind_tramp_btCreateDefaultTaskScheduler();
+
 
 void btITaskScheduler_Destroy(const btITaskScheduler *_this)
 {
@@ -68,18 +72,18 @@ btITaskScheduler *btITaskScheduler_OffsetMutablePtr(btITaskScheduler *ptr, ptrdi
 
 void btSetTaskScheduler(btITaskScheduler *ts)
 {
-    ::btSetTaskScheduler(
+    _mrbind_tramp_btSetTaskScheduler(
         ((btITaskScheduler *)ts)
     );
 }
 
 btITaskScheduler *btGetTaskScheduler(void)
 {
-    return (btITaskScheduler *)(::btGetTaskScheduler());
+    return (btITaskScheduler *)(_mrbind_tramp_btGetTaskScheduler());
 }
 
 btITaskScheduler *btCreateDefaultTaskScheduler(void)
 {
-    return (btITaskScheduler *)(::btCreateDefaultTaskScheduler());
+    return (btITaskScheduler *)(_mrbind_tramp_btCreateDefaultTaskScheduler());
 }
 
