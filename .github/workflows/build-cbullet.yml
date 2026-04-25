@@ -2,9 +2,19 @@ name: Build cbullet Libraries
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master, develop ]
+    paths:
+      - 'src/**'
+      - 'bindings/c/**'
+      - 'scripts/**'
+      - '.github/workflows/build-cbullet.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, master, develop ]
+    paths:
+      - 'src/**'
+      - 'bindings/c/**'
+      - 'scripts/**'
+      - '.github/workflows/build-cbullet.yml'
   workflow_dispatch:  # Allow manual triggering
 
 # Required permissions for private repositories
@@ -12,61 +22,9 @@ permissions:
   contents: write  # Allow workflow to push commits back to repository
 
 jobs:
-  # Check if bullet source files have changed
-  check-changes:
-    name: Check for bullet source changes
-    runs-on: ubuntu-latest
-    outputs:
-      should_build: ${{ steps.check_sources.outputs.changed }}
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-
-    - name: Check for source changes
-      id: check_sources
-      run: |
-        SHOULD_BUILD=false
-
-        # Check if this is a manual workflow dispatch - ALWAYS BUILD
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "🔨 Manual workflow dispatch - FORCING BUILD"
-          SHOULD_BUILD=true
-        # Check if this is the first commit
-        elif ! git rev-parse HEAD~1 >/dev/null 2>&1; then
-          echo "First commit - building all libraries"
-          SHOULD_BUILD=true
-        else
-          # Get changed files
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
-
-          # Check if bullet source files changed
-          while IFS= read -r file; do
-            if [[ "$file" == deps/bullet/src/* ]] || \
-               [[ "$file" == deps/bullet/bindings/c/* ]] || \
-               [[ "$file" == deps/bullet/scripts/* ]] || \
-               [[ "$file" == deps/bullet/.github/workflows/build-cbullet.yml ]]; then
-              echo "Found bullet source change: $file"
-              SHOULD_BUILD=true
-              break
-            fi
-          done <<< "$CHANGED_FILES"
-        fi
-
-        if [ "$SHOULD_BUILD" = true ]; then
-          echo "changed=true" >> $GITHUB_OUTPUT
-          echo "✓ Will build cbullet libraries"
-        else
-          echo "changed=false" >> $GITHUB_OUTPUT
-          echo "✓ No source changes affecting cbullet libraries - skipping build"
-        fi
-
   build-windows:
     name: Build Windows (x64)
     runs-on: windows-latest
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'true'
 
     steps:
     - name: Checkout repository
@@ -77,21 +35,19 @@ jobs:
     - name: Build Release
       shell: pwsh
       run: |
-        cd deps/bullet/scripts
+        cd scripts
         .\build-cbullet-windows.ps1 -BuildType Release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows-x64
-        path: deps/bullet/libs/windows/**/*
+        path: libs/windows/**/*
         retention-days: 30
 
   build-macos:
     name: Build macOS (${{ matrix.arch }})
     runs-on: macos-latest
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'true'
     strategy:
       matrix:
         arch: [arm64, x86_64]
@@ -104,22 +60,19 @@ jobs:
 
     - name: Build Release
       run: |
-        cd deps/bullet/scripts
-        chmod +x build-cbullet-macos.sh
-        ./build-cbullet-macos.sh ${{ matrix.arch }} Release
+        chmod +x scripts/build-cbullet-macos.sh
+        scripts/build-cbullet-macos.sh ${{ matrix.arch }} Release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: macos-${{ matrix.arch }}
-        path: deps/bullet/libs/macos/${{ matrix.arch }}/**/*
+        path: libs/macos/${{ matrix.arch }}/**/*
         retention-days: 30
 
   build-linux:
     name: Build Linux (X64)
     runs-on: ubuntu-22.04
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'true'
 
     steps:
     - name: Checkout repository
@@ -134,22 +87,19 @@ jobs:
 
     - name: Build Release
       run: |
-        cd deps/bullet/scripts
-        chmod +x build-cbullet-linux.sh
-        ./build-cbullet-linux.sh Release
+        chmod +x scripts/build-cbullet-linux.sh
+        scripts/build-cbullet-linux.sh Release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: linux-X64
-        path: deps/bullet/libs/linux/**/*
+        path: libs/linux/**/*
         retention-days: 30
 
   build-web:
     name: Build Web (Emscripten)
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'true'
 
     steps:
     - name: Checkout repository
@@ -164,22 +114,19 @@ jobs:
 
     - name: Build Release
       run: |
-        cd deps/bullet/scripts
-        chmod +x build-cbullet-web.sh
-        ./build-cbullet-web.sh Release
+        chmod +x scripts/build-cbullet-web.sh
+        scripts/build-cbullet-web.sh Release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: emscripten-x86
-        path: deps/bullet/libs/emscripten/**/*
+        path: libs/emscripten/**/*
         retention-days: 30
 
   build-android:
     name: Build Android (${{ matrix.abi }})
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'true'
     strategy:
       matrix:
         abi: [arm64-v8a, armeabi-v7a, x86_64]
@@ -202,22 +149,19 @@ jobs:
 
     - name: Build Release
       run: |
-        cd deps/bullet/scripts
-        chmod +x build-cbullet-android.sh
-        ./build-cbullet-android.sh ${{ matrix.abi }} Release
+        chmod +x scripts/build-cbullet-android.sh
+        scripts/build-cbullet-android.sh ${{ matrix.abi }} Release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: android-${{ matrix.abi }}
-        path: deps/bullet/libs/android/${{ matrix.abi }}/**/*
+        path: libs/android/${{ matrix.abi }}/**/*
         retention-days: 30
 
   build-ios:
     name: Build iOS (arm64)
     runs-on: macos-latest
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'true'
 
     steps:
     - name: Checkout repository
@@ -227,25 +171,23 @@ jobs:
 
     - name: Build Release
       run: |
-        cd deps/bullet/scripts
-        chmod +x build-cbullet-ios.sh
-        ./build-cbullet-ios.sh arm64 Release
+        chmod +x scripts/build-cbullet-ios.sh
+        scripts/build-cbullet-ios.sh arm64 Release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ios-arm64
-        path: deps/bullet/libs/ios/**/*
+        path: libs/ios/**/*
         retention-days: 30
 
   # Combine all artifacts
   combine-artifacts:
     name: Combine All cbullet Libraries
-    needs: [check-changes, build-windows, build-macos, build-linux, build-web, build-android, build-ios]
+    needs: [build-windows, build-macos, build-linux, build-web, build-android, build-ios]
     runs-on: ubuntu-latest
     if: |
       always() &&
-      needs.check-changes.outputs.should_build == 'true' &&
       (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
@@ -271,30 +213,21 @@ jobs:
         mkdir -p combined-libs/android/x86_64/release
         mkdir -p combined-libs/ios/release
 
-        # Copy Windows artifacts
         if [ -d "libs/windows-x64" ]; then
           cp -r libs/windows-x64/* combined-libs/windows/ || true
         fi
-
-        # Copy macOS artifacts
         if [ -d "libs/macos-arm64" ]; then
           cp -r libs/macos-arm64/* combined-libs/macos/arm64/ || true
         fi
         if [ -d "libs/macos-x86_64" ]; then
           cp -r libs/macos-x86_64/* combined-libs/macos/x86_64/ || true
         fi
-
-        # Copy Linux artifacts
         if [ -d "libs/linux-X64" ]; then
           cp -r libs/linux-X64/* combined-libs/linux/ || true
         fi
-
-        # Copy Web artifacts
         if [ -d "libs/emscripten-x86" ]; then
           cp -r libs/emscripten-x86/* combined-libs/emscripten/ || true
         fi
-
-        # Copy Android artifacts
         if [ -d "libs/android-arm64-v8a" ]; then
           cp -r libs/android-arm64-v8a/* combined-libs/android/arm64-v8a/ || true
         fi
@@ -304,13 +237,10 @@ jobs:
         if [ -d "libs/android-x86_64" ]; then
           cp -r libs/android-x86_64/* combined-libs/android/x86_64/ || true
         fi
-
-        # Copy iOS artifacts
         if [ -d "libs/ios-arm64" ]; then
           cp -r libs/ios-arm64/* combined-libs/ios/ || true
         fi
 
-        # Show final structure
         echo "Final artifact structure:"
         find combined-libs -type f
 
@@ -322,39 +252,31 @@ jobs:
         retention-days: 90
 
     - name: Commit libraries to repository
-      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
       run: |
-        # Checkout the repository (artifacts download doesn't include repo files)
-        git clone --depth 2 --branch main https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git repo
+        git clone --depth 2 --branch ${{ github.ref_name }} https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git repo
         cd repo
 
-        # Configure git
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        # Remove old cbullet libraries
-        rm -rf deps/bullet/libs
-
-        # Ensure target directory exists
-        mkdir -p deps/bullet/libs
-
-        # Copy new cbullet libraries
-        cp -r ../combined-libs/* deps/bullet/libs/
+        rm -rf libs
+        mkdir -p libs
+        cp -r ../combined-libs/* libs/
 
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "📦 Updating cbullet libraries..."
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-        # Stage changes
-        git add deps/bullet/libs/
+        git add libs/
+        git diff --cached --quiet && echo "No library changes to commit" && exit 0
 
-        # Commit and push
         git commit -m "Auto-update built cbullet libraries [skip ci]
 
         Built from commit: ${{ github.sha }}
         Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-        git push origin main
+        git push origin ${{ github.ref_name }}
 
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "✅ cbullet libraries committed and pushed successfully"
