@@ -31,6 +31,7 @@ Write-Host "Configuring CMake..." -ForegroundColor Yellow
 cmake $BindingsCDir `
     -G "Visual Studio 17 2022" `
     -A $Architecture `
+    -T ClangCL `
     -DCMAKE_BUILD_TYPE="$BuildType"
 
 if ($LASTEXITCODE -ne 0) {

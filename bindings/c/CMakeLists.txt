@@ -37,11 +37,8 @@ set_target_properties(cbullet PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-if(MSVC)
-    # /EHsc (the CMake default) assumes extern "C" functions are noexcept (/EHc).
-    # In that noexcept context MSVC tries to verify copy-constructibility of ternary
-    # result types, triggering C2280 on non-copyable Bullet classes.
-    # Replace /EHsc with /EHs to drop that assumption while keeping C++ exception support.
+if(MSVC AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Pure MSVC: /EHsc assumes extern "C" are noexcept; replace with /EHs.
     string(REPLACE "/EHsc" "/EHs" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
     target_compile_options(cbullet PRIVATE
